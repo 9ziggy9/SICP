@@ -56,12 +56,41 @@ This mode of operation is often expressed by saying the interpreter runs in a _r
 
 - THOUGHTS: This seems to imply to me that functional languages in a sense inherently recursive, all read-eval-print loops look like they simply end with the expression of the outer most function. This is so stack like that I doubt it is a coincidence. I guess I am assuming stack => recursion.
 
-** Find approximation to square root: imperative knowledge "how to"
-General procedure: to find square root of x
-- We make a guess G.
-- We improve the guess by averaging G and x/G
-- We keep improving our guess until it is "good enough"
-- Adding an additional bullet-o
+** Naming and Environment
+Names are used to refer to computational objects. We say that names identify a variable whose value is the object.
+__define__
 #+begin_src scheme
-(+ 99 5)
+(define size 2)
 #+end_src
+This causes the interpreter to associate the value 2 with the name size. Now we can refer to the value 2 by the name:
+#+begin_src scheme
+(define size 2)
+(* 5 size)
+#+end_src
+Here is another example:
+#+begin_src scheme
+(define pi 3.14159)
+(define radius 10)
+(define area (* pi (* radius radius)))
+area
+#+end_src
+Define is Scheme's simplest means of abstraction, as it allows us to use simple names to refer to the results of compound operations.
+Clearly memory is being involved; that is it is keeping track of name-object pairs. We call this memory *the environment*. In this case we speak of the global environment in particular.
+** Evaluating Combinations
+*THIS CHAPTER IS ABOUT ISSUES IN PROCEDURAL THINKING!*
+As a case in point, let us consider that in evaluating combinations, the interpreter is ITSELF following a procedure.
+- TO EVALUATE A COMBINATION, DO THE FOLLOWING:
+- 1. Evaluate the subexpressions of the combination.
+- 2. Apply the procedure that is the value of the leftmost subexpression (the operator) to the arguments that are the values of the other subexpressions (operands).
+
+Ahah, I knew my thought in the nested combinations section was on to something! Observe that the first step dictates that the evaluation process for a combination first involves evaluaing it's subexpressions. The evaluation rule is therefor RECURSIVE in nature, that is, the read-eval-print loop must invoke ITSELF in evaluating a complex expression, it itself containing all the procedural notions needed to communicate with the CPU.
+Notice how succintly the idea of recursion can be used to express what, would otherwise be viewed as a rather complicated process. For example, evaluating
+#+begin_src scheme
+(* (+ 2 (* 4 6))
+    (+ 3 5 7))
+#+end_src
+Notice the similarity of SICP's diagram for the read-eval-print loop and that to a stack. (Turn it upside down).
+Observe that each node in the read-eval-print loop is itself a primitive expression, such as a number, operator or a name. We handle the primitive cases by stipulating:
+- Values of numerals are the numbers they name.
+- Values of built in operators are machine instruction sequences to add/divide/multiply/divide, and/or, etc.
+- Values of names are the objects associate with name-object pairs in environment; they are subbranches.
