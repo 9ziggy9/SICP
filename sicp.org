@@ -139,3 +139,57 @@ The above substitution model is not the only way to perform evaluation. An alter
 (+ (* (+ 5 1) (+ 5 2)) (* (* 5 2) (* 5 2)))
 we then reduce, notice that (+ 5 2) and (* 5 2) are being evaluated twice!
 *LISP USERS APPLICATIVE-ORDER EVALUATION*
+
+** Conditional Expressions and Predicates
+Consider the case analysis mathematical construct:
+[[https://mitpress.mit.edu/sites/default/files/sicp/full-text/book/ch1-Z-G-2.gif]]
+There is a special form in Lisp for notating such a case analysis!
+#+begin_src scheme
+(define (abs x)
+  (cond ((> x 0) x)
+        ((= x 0) 0)
+        ((< x 0) (- x))))
+(abs -5)
+#+end_src
+Each line  of the conditional is called a clause, the first expression of the pair is the called the *predicate*.
+Instead using *if*:
+#+begin_src scheme
+(define (abs x)
+  (if (< x 0)
+      (- x)
+      x))
+(abs -5)
+#+end_src
+*and*, *or*, *not*:
+#+begin_src scheme
+(and (< 5 2) (< 2 8))
+(or (< 5 2) (< 2 8))
+(not (< 5 2))
+#+end_src
+Note the following definitions of >= and that the second in particular invokes the notion of relative complement of sets.
+#+begin_src scheme
+(define (>= x y)
+  (or (< x y) (= x y)))
+#+end_src
+#+begin_src scheme
+(define (>= x y)
+  (not (< x y)))
+#+end_src
+
+** EXERCISES
+*** 1.3
+Define a procedure that takes three numbers as arguments and returns the sum of the squares of the two larger numbers.
+**** Scheme
+#+begin_src scheme
+(define (ss-larger x y z)
+  (+ (if (and (< z x) (< z y))
+         (+ (square x) (square y))
+         (if (> z x)
+             (+ (square z) (square y))
+             (+ (square z) (square x))))))
+(define (square x) (* x x))
+(ss-larger 1 1 3)
+#+end_src
+
+#+RESULTS:
+: 13
