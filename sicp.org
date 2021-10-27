@@ -116,3 +116,18 @@ Or if we would like to name this procedure and abstract even further. Note that 
   (+ (square x) (square y)))
 (f 5)
 #+end_src
+Let's explicitly look at the subtitutional model in applying the above procedure.
+(f 5)
+- We begin by retrieving the body of f:
+(sum-of-square (+ a 1) (* a 2))
+- Then we replace the formal parmeter of a by the argument 5:
+  (sum-of-squares (+ 5 1) (* 5 2))
+- Next we evaluate the subprocedures of + and * in and evaluate the sum-of-squares operator.
+  (sum-of-squares 6 10)
+  (+ (square 6) (square 10))
+- Next the square operators are computed.
+  (+ 36 100)
+  136
+*** Two Important Notes
+1. The purpose of the substitution model is to merely help us THINK about the procedure application, it is merely a model and not reflective of how the interpreter truly works. We will later discuss how "subtition" is accomplished by using a local environment for the formal parameters.
+2. As we increase in detail this substitution model will need to be replaced. We will look to a complete implementation of an interpreter and compiler by chapter 5. I still think that stacks are going to make an appearance relatively shortly.
