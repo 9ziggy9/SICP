@@ -95,3 +95,24 @@ Observe that each node in the read-eval-print loop is itself a primitive express
 - Values of built in operators are machine instruction sequences to add/divide/multiply/divide, and/or, etc.
 - Values of names are the objects associate with name-object pairs in environment; they are subbranches.
 [[https://mitpress.mit.edu/sites/default/files/sicp/full-text/book/ch1-Z-G-1.gif]]
+
+** Compound Procedures
+Example of compound procedures.
+#+begin_src scheme
+(define (square x) (* x x))
+(square 2)
+#+end_src
+Notice that square can also be used as a building block for other procedures. For example, we could express x^2 + y^2
+#+begin_src scheme
+(define (square x) (* x x))
+(+ (square 2) (square 3))
+#+end_src
+Or if we would like to name this procedure and abstract even further. Note that bottom definitions are clearly being hoisted above the declaration of f.
+#+begin_src scheme
+(define (f a)
+  (sum-of-squares (+ a 1) (* a 2)))
+(define (square x) (* x x))
+(define (sum-of-squares x y)
+  (+ (square x) (square y)))
+(f 5)
+#+end_src
