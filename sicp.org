@@ -89,8 +89,9 @@ Notice how succintly the idea of recursion can be used to express what, would ot
 (* (+ 2 (* 4 6))
     (+ 3 5 7))
 #+end_src
-Notice the similarity of SICP's diagram for the read-eval-print loop and that to a stack. (Turn it upside down).
+Notice the similarity of SICP's diagram for the read-eval-print loop and that to a stack. (Turn it upside down). Notice the similarities between a tree and stack.
 Observe that each node in the read-eval-print loop is itself a primitive expression, such as a number, operator or a name. We handle the primitive cases by stipulating:
 - Values of numerals are the numbers they name.
 - Values of built in operators are machine instruction sequences to add/divide/multiply/divide, and/or, etc.
 - Values of names are the objects associate with name-object pairs in environment; they are subbranches.
+[[https://mitpress.mit.edu/sites/default/files/sicp/full-text/book/ch1-Z-G-1.gif]]
