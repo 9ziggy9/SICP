@@ -131,3 +131,11 @@ Let's explicitly look at the subtitutional model in applying the above procedure
 *** Two Important Notes
 1. The purpose of the substitution model is to merely help us THINK about the procedure application, it is merely a model and not reflective of how the interpreter truly works. We will later discuss how "subtition" is accomplished by using a local environment for the formal parameters.
 2. As we increase in detail this substitution model will need to be replaced. We will look to a complete implementation of an interpreter and compiler by chapter 5. I still think that stacks are going to make an appearance relatively shortly.
+*** Applicative order vs Normal order
+The above substitution model is not the only way to perform evaluation. An alternative evaluation model would not evaluate the operands until their values were in fact needed.
+*Normal order evaluation* uses just this, an expression substitutes OPERAND expressions for parameters until it has obtained an expression solely involving PRIMITIVE operators.
+(sum-of-squares (+5 1) (* 5 2))
+(+ (square (+ 5 1)(square (* 5 2)))
+(+ (* (+ 5 1) (+ 5 2)) (* (* 5 2) (* 5 2)))
+we then reduce, notice that (+ 5 2) and (* 5 2) are being evaluated twice!
+*LISP USERS APPLICATIVE-ORDER EVALUATION*
