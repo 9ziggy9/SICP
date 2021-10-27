@@ -1,0 +1,39 @@
+* Introduction
+Computer science is neither science nor about computers. It has more in common with magic.
+The only reason why large programs are possible is because there are techniques fot controlling the complexity of large systems.
+** Primitives in Scheme
+#+begin_src scheme
+(/ 140 120)
+#+end_src
+#+RESULTS:
+: 7/6
+#+begin_src scheme
+(/ 143.2 120)
+#+end_src
+#+RESULTS:
+: 1.1933333333333331
+#+begin_src scheme
+(* 143 120)
+#+end_src
+#+RESULTS:
+: 17160
+#+begin_src scheme
+(+ 143 120)
+#+end_src
+#+RESULTS:
+: 263
+#+begin_src scheme
+(- 143 120)
+#+end_src
+#+RESULTS:
+: 23
+
+** Find approximation to square root: imperative knowledge "how to"
+General procedure: to find square root of x
+- We make a guess G.
+- We improve the guess by averaging G and x/G
+- We keep improving our guess until it is "good enough"
+- Adding an additional bullet-o
+#+begin_src scheme
+(+ 99 5)
+#+end_src
