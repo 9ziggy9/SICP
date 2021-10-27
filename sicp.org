@@ -1,7 +1,19 @@
 * Introduction
 Computer science is neither science nor about computers. It has more in common with magic.
-The only reason why large programs are possible is because there are techniques fot controlling the complexity of large systems.
-** Primitives in Scheme
+The only reason why large programs are possible is because there are techniques for controlling the complexity of large systems.
+** Primitives in LISP/Scheme
+Every powerful language has three mechanisms to accomplish the construction of complex ideas from simple ones:
+- primtive expressions, which represent the simplest entities the language is concerned with.
+- means of combination, by which compound elements are built from simpler ones.
+- means of abstraction, by which compound elements can be named and manipulated as units.
+Expressions representing numbers maay be combined with an expression representing a primitive procedure (such as + or /).
+Expressions formed by deliminiting a list of expressions within a set of parentheses are called *combinations*. The left more elements are called *operands*.
+Note that simply expressing a number itself is a primitive operation.
+#+begin_src scheme
+349
+#+end_src
+#+RESULTS:
+: 349
 #+begin_src scheme
 (/ 140 120)
 #+end_src
@@ -27,6 +39,27 @@ The only reason why large programs are possible is because there are techniques 
 #+end_src
 #+RESULTS:
 : 23
+
+** Nested combinations
+An advantage of prefix notation is that it extends in a straightforward way to allow combinations to be *nested*. That is to have combinations whose elements are themselves combinations:
+#+begin_src scheme
+(+ (* 2 5) (- 10 6))
+#+end_src
+We at times will use *pretty-printing*, in which each long combination is written so that the opearnds are aligned vertically. The indentations display clearly the structure of the expression.
+#+begin_src scheme
+(+ (* 3 (+ (* 2 4)(+ 3 5))) (+ (- 10 7) 6))
+#+end_src
+#+begin_src scheme
+(+ (* 3
+      (+ (* 2 4)
+         (+ 3 5)))
+   (+ (- 10 7)
+      6))
+#+end_src
+Even with complex expressions, the interpreter always operates in the same basic cycle: it heads an expression from the terminal, evaluates the expression, and print the results.
+This mode of operation is often expressed by saying the interpreter runs in a _read-eval-print-loop_. Observe in particular that it is not necessary to explicitly instruct the interpreter to print the value of the expression.
+
+- THOUGHTS: This seems to imply to me that functional languages in a sense inherently recursive, all read-eval-print loops look like they simply end with the expression of the outer most function. This is so stack like that I doubt it is a coincidence. I guess I am assuming stack => recursion.
 
 ** Find approximation to square root: imperative knowledge "how to"
 General procedure: to find square root of x
