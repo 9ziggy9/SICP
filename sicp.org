@@ -10,11 +10,6 @@ Expressions representing numbers maay be combined with an expression representin
 Expressions formed by deliminiting a list of expressions within a set of parentheses are called *combinations*. The left more elements are called *operands*.
 Note that simply expressing a number itself is a primitive operation.
 #+begin_src scheme
-349
-#+end_src
-#+RESULTS:
-: 349
-#+begin_src scheme
 (/ 140 120)
 #+end_src
 #+RESULTS:
