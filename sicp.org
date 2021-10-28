@@ -220,7 +220,7 @@ Ben Bitdiddle has invented a test to determine whether the interpreter he is fac
 What behavior will Ben observe with an interpreter that uses applicative-order evaluation? WHat behavior will he observe with an interpreter that uses normal-order evaluation? Explain your answer. (Assume that the evaluation rule for the special form if is the same whether the interpreter is using normal or applicative order: the predicate expression is evaluated first and the result determines whether to evaluate the consequent or the alternative expression.)
 When test is ran, x is identically 0 and one might expect the if to merely return 0. However, the issue is that because (p) is to follow substitution per the applicative-order evaluation, p is called and (p) need to be evaluated once again. This leads to a stack overflow.
 If were to instead be using a normal-order evaluation, we expand the test definition in its call and continue to expand until we have primitive combinations. In this way, the if predicate CAN be hit, and 0 simply returned.
-** Square Root's By Newton's Method
+** Square Roots By Newton's Method
 Consider that by square-root function of mathematics, we mean a function f(z) >= 0 such that f(z)^2 = z. This is a perfectly legitimate mathematical function, we can use it to test whether a number is a squareroot of another, or derive properties of squareroots, it does not however describe a *procedure*.
 This embodies the distinction between declarative and imperative knowledge.
 If we want to procedurally compute the squareroot of a number, we apply an approximation routine due to Newton.
@@ -273,7 +273,7 @@ Abs and square have been implemented previously, and with them we have the full 
 Because Alyssa's new-if is going to require the evaluation of sqrt-iter regardless of the truthfulness of the predicate clause, this will produce a stack overflow as sqrt-iter will call itself an infinite amount of times. The if of LISP does not use pure applicative-order evaluation.
 *** 1.7
 - The good-enough? test used in computing square roots will not be very effective for finding the square roots of very small numbers. Also, in real computers, arithmetic operations are almost always performed with limited precision. This makes our test inadequate for very large numbers. Explain these statements, with examples showing how the test fails for small and large numbers. An alternative strategy for implementing good-enough? is to watch how guess changes from one iteration to the next and to stop when the change is a very small fraction of the guess. Design a square-root procedure that uses this kind of end test. Does this work better for small and large numbers?
-This is a space comlexity issue. Because when we are testing to see if our guess is indeed a squareroot, we invoke squaring of the number; this value, grows like like g^2. Because small numbers are floats, operationally, they present the same space complexity problem to the CPU. Testing the difference in the next guess iteration is more effective because here the testing clause evolves purely linearly. However, in my case, a small enough precision is destined to break, presumably when the value given is smaller than the smallest precision float my CPU can represent.
+This is a space comlexity issue. Because when we are testing to see if our guess is indeed a squareroot, we invoke squaring of the number; this value, grows like like g^2. Because small numbers are floats, operationally, they present the same space complexity problem to the CPU. Testing the difference in the next guess iteration is more effective because here the testing clause evolves purely linearly. However, in my case, a precise enough choice of tolerance is destined to break the evaluation, it will occur when the value given is smaller than the smallest precision float my CPU can represent.
 #+begin_src scheme
 (define (sqrt-iter guess x tolerance)
   (if (good-enough? guess (improve guess x) tolerance)
@@ -298,14 +298,14 @@ This is a space comlexity issue. Because when we are testing to see if our guess
 *** 1.8
 Newton's method for cube roots is based on the fact that if y is an approximation to the cube root of x, then a better approximation is given by the value: (x/y^2 + 2y) / 3. (The derivation of this is anlogous to the square case).
 #+begin_src scheme
-(define (sqrt-iter guess x tolerance)
+(define (cube-iter guess x tolerance)
   (if (good-enough? guess (improve guess x) tolerance)
       guess
-      (sqrt-iter (improve guess x) x tolerance)))
+      (cube-iter (improve guess x) x tolerance)))
 (define (improve guess x)
-  (average guess (/ x guess)))
+  (average (* 2 guess) (/ x (square guess))))
 (define (average x y)
-  (/ (+ x y) 2))
+  (/ (+ x y) 3))
 (define (good-enough? guess next-guess tolerance)
   (< (abs (- guess next-guess)) tolerance))
 (define (abs x)
@@ -313,5 +313,8 @@ Newton's method for cube roots is based on the fact that if y is an approximatio
       (- x)
       x))
 (define (square x) (* x x))
-(sqrt-iter 1 1000000.0 0.0001)
+(cube-iter 1 8.0 0.0001)
 #+end_src
+
+#+RESULTS:
+: 2.000004911675504
