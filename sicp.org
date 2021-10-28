@@ -359,3 +359,33 @@ This is called *block structure*. Another thing which we can do is remove the ex
 : 4.000000636692939
 
 Block structure originated with the programming language ALGOL 60.
+
+** Linear Recursion and Iteration
+*** Factorial Function Implementations
+We will speak of *procedures* vs *processes*
+_Recursive Process_
+#+begin_src scheme
+(define (factorial n)
+  (if (= n 1)
+      1
+      (* n (factorial (- n 1)))))
+(factorial 3)
+#+end_src
+- Notice how this procedure, via the substitution model, reveals a shape of expansion and contraction. A stack is expanded until a terminating condition is met, i.e. a chain of deferred operations. Contraction is when the operations are actually performed. Carrying out this process *requires that the interpreter keep track of operations to be performed later on.* The length of the chain grows linearly with n.
+- *DEFINTION*: A process is called *recursive* if it is expanded and contracted via a chain of deferred operations.
+_Iterative Process_
+#+begin_src scheme
+(define (factorial n)
+  (fact-iter 1 1 n))
+(define (fact-iter product counter max-count)
+  (if (> counter max-count)
+      product
+      (fact-iter (* counter product)
+                 (+ counter 1)
+                 max-count)))
+#+end_src
+- Notice how this procedure does not grow and shrink. At each step, we need to simply keep track of the current product, counter and max-count variables.
+- *DEFINITION*: A process is *iterative* is one whose state can be summarized by a fixed number of *state variables*, together with a fixed rule that describes how the state variables should be updated as the process moves from state to state and an (optional) end test that specifies conditions under which the process should terminate. This particular process is also growing linearly with n.
+_SOME NOTES_
+- Because the iterative process has state variables which describe the state of the process at any given point, halting execution is not an issue. We could simply resume the computation at any point by supplying the interpreter with the values of the state variables.
+- This is not the case in the recursive process, in this case there is additional "hidden" information maintained by the interpreter and not the variables of the program which are negotiating the chain of deferred operations. The longer the chain, the more information that must be maintained.
