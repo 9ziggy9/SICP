@@ -188,8 +188,82 @@ Define a procedure that takes three numbers as arguments and returns the sum of 
              (+ (square z) (square y))
              (+ (square z) (square x))))))
 (define (square x) (* x x))
-(ss-larger 1 1 3)
+#+end_src
+**** Python
+#+begin_src python :results output
+def sum_larger_squares(x,y,z):
+    if z < x and z < y:
+        return x**2 + y**2
+    elif z > x:
+        return z**2 + y**2
+    else:
+        return z**2 + x**2
+#+end_src
+*** 1.4
+Observe that our model of evaluation allows for combinations whose operators are compound expressions. Use this observation to describe the behavior of the following procedure:
+#+begin_src scheme
+(define (a-plus-abs-b a b)
+  ((if (> b 0) + -) a b))
+(a-plus-abs-b 1 2)
+#+end_src
+After the predicate of the if is evaluated, if b is greater than zero, the sum of a and b is taken as normal. The else clause performs subtraction of a by b, that is, if b is less than or equal to zero, we have a - (-b) = a + b. Note this is logically equivalent to a + |-b|.
+*** 1.5
+Ben Bitdiddle has invented a test to determine whether the interpreter he is faced with is using applicative-order evaluation or normal-order evaluation. He defines the following procedures:
+#+begin_src scheme
+(define (p) (p))
+(define (test x y)
+  (if (= x 0)
+      0
+      y))
+(test 0 (p))
+#+end_src
+What behavior will Ben observe with an interpreter that uses applicative-order evaluation? WHat behavior will he observe with an interpreter that uses normal-order evaluation? Explain your answer. (Assume that the evaluation rule for the special form if is the same whether the interpreter is using normal or applicative order: the predicate expression is evaluated first and the result determines whether to evaluate the consequent or the alternative expression.)
+When test is ran, x is identically 0 and one might expect the if to merely return 0. However, the issue is that because (p) is to follow substitution per the applicative-order evaluation, p is called and (p) need to be evaluated once again. This leads to a stack overflow.
+If were to instead be using a normal-order evaluation, we expand the test definition in its call and continue to expand until we have primitive combinations. In this way, the if predicate CAN be hit, and 0 simply returned.
+** Square Root's By Newton's Method
+Consider that by square-root function of mathematics, we mean a function f(z) >= 0 such that f(z)^2 = z. This is a perfectly legitimate mathematical function, we can use it to test whether a number is a squareroot of another, or derive properties of squareroots, it does not however describe a *procedure*.
+This embodies the distinction between declarative and imperative knowledge.
+If we want to procedurally compute the squareroot of a number, we apply an approximation routine due to Newton.
+#+begin_src scheme
+(define (sqrt-iter guess x)
+  (if (good-enough? guess x)
+      guess
+      (sqrt-iter (improve guess x) x)))
+#+end_src
+We improve the guess by averaging the sum of the current guess and x / current guess.
+#+begin_src scheme
+(define (improve guess x)
+  (average guess (/ x guess)))
+#+end_src
+We implement the average of two numbers:
+#+begin_src scheme
+(define (average x y)
+  (/ (+ x y) 2))
+#+end_src
+One way to implement good-enough? would be to look at the absolute value of the difference of the square of the current guess and x and try to get it sufficiently small. I differ from SICP here and include a tolerance variable to supplied by the user.
+#+begin_src scheme
+(define (good-enough? guess x tolerance)
+  (< (abs (- (square guess) x)) tolerance))
+#+end_src
+Abs and square have been implemented previously, and with them we have the full implementation:
+#+begin_src scheme
+(define (sqrt-iter guess x tolerance)
+  (if (good-enough? guess x tolerance)
+      guess
+      (sqrt-iter (improve guess x) x tolerance)))
+(define (improve guess x)
+  (average guess (/ x guess)))
+(define (average x y)
+  (/ (+ x y) 2))
+(define (good-enough? guess x tolerance)
+  (< (abs (- (square guess) x)) tolerance))
+(define (abs x)
+  (if (< x 0)
+      (- x)
+      x))
+(define (square x) (* x x))
+(sqrt-iter 1.8 2 0.0001)
 #+end_src
 
 #+RESULTS:
-: 13
+: 1.4142136841942816
