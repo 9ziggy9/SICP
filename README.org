@@ -1,0 +1,537 @@
+* Introduction
+Computer science is neither science nor about computers. It has more in common with magic.
+The only reason why large programs are possible is because there are techniques for controlling the complexity of large systems.
+** Primitives in LISP/Scheme
+Every powerful language has three mechanisms to accomplish the construction of complex ideas from simple ones:
+- primtive expressions, which represent the simplest entities the language is concerned with.
+- means of combination, by which compound elements are built from simpler ones.
+- means of abstraction, by which compound elements can be named and manipulated as units.
+Expressions representing numbers maay be combined with an expression representing a primitive procedure (such as + or /).
+Expressions formed by deliminiting a list of expressions within a set of parentheses are called *combinations*. The left more elements are called *operands*.
+Note that simply expressing a number itself is a primitive operation.
+#+begin_src scheme
+(/ 140 120)
+#+end_src
+#+RESULTS:
+: 7/6
+#+begin_src scheme
+(/ 143.2 120)
+#+end_src
+#+RESULTS:
+: 1.1933333333333331
+#+begin_src scheme
+(* 143 120)
+#+end_src
+#+RESULTS:
+: 17160
+#+begin_src scheme
+(+ 143 120)
+#+end_src
+#+RESULTS:
+: 263
+#+begin_src scheme
+(- 143 120)
+#+end_src
+#+RESULTS:
+: 23
+
+** Nested Combinations
+An advantage of prefix notation is that it extends in a straightforward way to allow combinations to be *nested*. That is to have combinations whose elements are themselves combinations:
+#+begin_src scheme
+(+ (* 2 5) (- 10 6))
+#+end_src
+We at times will use *pretty-printing*, in which each long combination is written so that the opearnds are aligned vertically. The indentations display clearly the structure of the expression.
+#+begin_src scheme
+(+ (* 3 (+ (* 2 4)(+ 3 5))) (+ (- 10 7) 6))
+#+end_src
+#+begin_src scheme
+(+ (* 3
+      (+ (* 2 4)
+         (+ 3 5)))
+   (+ (- 10 7)
+      6))
+#+end_src
+Even with complex expressions, the interpreter always operates in the same basic cycle: it heads an expression from the terminal, evaluates the expression, and print the results.
+This mode of operation is often expressed by saying the interpreter runs in a _read-eval-print-loop_. Observe in particular that it is not necessary to explicitly instruct the interpreter to print the value of the expression.
+
+- THOUGHTS: This seems to imply to me that functional languages in a sense inherently recursive, all read-eval-print loops look like they simply end with the expression of the outer most function. This is so stack like that I doubt it is a coincidence. I guess I am assuming stack => recursion.
+
+** Naming and Environment
+Names are used to refer to computational objects. We say that names identify a variable whose value is the object.
+__define__
+#+begin_src scheme
+(define size 2)
+#+end_src
+This causes the interpreter to associate the value 2 with the name size. Now we can refer to the value 2 by the name:
+#+begin_src scheme
+(define size 2)
+(* 5 size)
+#+end_src
+Here is another example:
+#+begin_src scheme
+(define pi 3.14159)
+(define radius 10)
+(define area (* pi (* radius radius)))
+area
+#+end_src
+Define is Scheme's simplest means of abstraction, as it allows us to use simple names to refer to the results of compound operations.
+Clearly memory is being involved; that is it is keeping track of name-object pairs. We call this memory *the environment*. In this case we speak of the global environment in particular.
+** Evaluating Combinations
+*THIS CHAPTER IS ABOUT ISSUES IN PROCEDURAL THINKING!*
+As a case in point, let us consider that in evaluating combinations, the interpreter is ITSELF following a procedure.
+- TO EVALUATE A COMBINATION, DO THE FOLLOWING:
+- 1. Evaluate the subexpressions of the combination.
+- 2. Apply the procedure that is the value of the leftmost subexpression (the operator) to the arguments that are the values of the other subexpressions (operands).
+
+Ahah, I knew my thought in the nested combinations section was on to something! Observe that the first step dictates that the evaluation process for a combination first involves evaluaing it's subexpressions. The evaluation rule is therefor RECURSIVE in nature, that is, the read-eval-print loop must invoke ITSELF in evaluating a complex expression, it itself containing all the procedural notions needed to communicate with the CPU.
+Notice how succintly the idea of recursion can be used to express what, would otherwise be viewed as a rather complicated process. For example, evaluating
+#+begin_src scheme
+(* (+ 2 (* 4 6))
+    (+ 3 5 7))
+#+end_src
+Notice the similarity of SICP's diagram for the read-eval-print loop and that to a stack. (Turn it upside down). Notice the similarities between a tree and stack.
+Observe that each node in the read-eval-print loop is itself a primitive expression, such as a number, operator or a name. We handle the primitive cases by stipulating:
+- Values of numerals are the numbers they name.
+- Values of built in operators are machine instruction sequences to add/divide/multiply/divide, and/or, etc.
+- Values of names are the objects associate with name-object pairs in environment; they are subbranches.
+[[https://mitpress.mit.edu/sites/default/files/sicp/full-text/book/ch1-Z-G-1.gif]]
+
+** Compound Procedures
+Example of compound procedures.
+#+begin_src scheme
+(define (square x) (* x x))
+(square 2)
+#+end_src
+Notice that square can also be used as a building block for other procedures. For example, we could express x^2 + y^2
+#+begin_src scheme
+(define (square x) (* x x))
+(+ (square 2) (square 3))
+#+end_src
+Or if we would like to name this procedure and abstract even further. Note that bottom definitions are clearly being hoisted above the declaration of f.
+#+begin_src scheme
+(define (f a)
+  (sum-of-squares (+ a 1) (* a 2)))
+(define (square x) (* x x))
+(define (sum-of-squares x y)
+  (+ (square x) (square y)))
+(f 5)
+#+end_src
+Let's explicitly look at the subtitutional model in applying the above procedure.
+(f 5)
+- We begin by retrieving the body of f:
+(sum-of-square (+ a 1) (* a 2))
+- Then we replace the formal parmeter of a by the argument 5:
+  (sum-of-squares (+ 5 1) (* 5 2))
+- Next we evaluate the subprocedures of + and * in and evaluate the sum-of-squares operator.
+  (sum-of-squares 6 10)
+  (+ (square 6) (square 10))
+- Next the square operators are computed.
+  (+ 36 100)
+  136
+*** Two Important Notes
+1. The purpose of the substitution model is to merely help us THINK about the procedure application, it is merely a model and not reflective of how the interpreter truly works. We will later discuss how "subtition" is accomplished by using a local environment for the formal parameters.
+2. As we increase in detail this substitution model will need to be replaced. We will look to a complete implementation of an interpreter and compiler by chapter 5. I still think that stacks are going to make an appearance relatively shortly.
+*** Applicative order vs Normal order
+The above substitution model is not the only way to perform evaluation. An alternative evaluation model would not evaluate the operands until their values were in fact needed.
+*Normal order evaluation* uses just this, an expression substitutes OPERAND expressions for parameters until it has obtained an expression solely involving PRIMITIVE operators.
+(sum-of-squares (+5 1) (* 5 2))
+(+ (square (+ 5 1)(square (* 5 2)))
+(+ (* (+ 5 1) (+ 5 2)) (* (* 5 2) (* 5 2)))
+we then reduce, notice that (+ 5 2) and (* 5 2) are being evaluated twice!
+*LISP USERS APPLICATIVE-ORDER EVALUATION*
+
+** Conditional Expressions and Predicates
+Consider the case analysis mathematical construct:
+[[https://mitpress.mit.edu/sites/default/files/sicp/full-text/book/ch1-Z-G-2.gif]]
+There is a special form in Lisp for notating such a case analysis!
+#+begin_src scheme
+(define (abs x)
+  (cond ((> x 0) x)
+        ((= x 0) 0)
+        ((< x 0) (- x))))
+(abs -5)
+#+end_src
+Each line  of the conditional is called a clause, the first expression of the pair is the called the *predicate*.
+Instead using *if*:
+#+begin_src scheme
+(define (abs x)
+  (if (< x 0)
+      (- x)
+      x))
+(abs -5)
+#+end_src
+*and*, *or*, *not*:
+#+begin_src scheme
+(and (< 5 2) (< 2 8))
+(or (< 5 2) (< 2 8))
+(not (< 5 2))
+#+end_src
+Note the following definitions of >= and that the second in particular invokes the notion of relative complement of sets.
+#+begin_src scheme
+(define (>= x y)
+  (or (< x y) (= x y)))
+#+end_src
+#+begin_src scheme
+(define (>= x y)
+  (not (< x y)))
+#+end_src
+
+** EXERCISES 1.1 - 1.5
+*** 1.3
+Define a procedure that takes three numbers as arguments and returns the sum of the squares of the two larger numbers.
+**** Scheme
+#+begin_src scheme
+(define (ss-larger x y z)
+  (+ (if (and (< z x) (< z y))
+         (+ (square x) (square y))
+         (if (> z x)
+             (+ (square z) (square y))
+             (+ (square z) (square x))))))
+(define (square x) (* x x))
+#+end_src
+**** Python
+#+begin_src python :results output
+def sum_larger_squares(x,y,z):
+    if z < x and z < y:
+        return x**2 + y**2
+    elif z > x:
+        return z**2 + y**2
+    else:
+        return z**2 + x**2
+#+end_src
+*** 1.4
+Observe that our model of evaluation allows for combinations whose operators are compound expressions. Use this observation to describe the behavior of the following procedure:
+#+begin_src scheme
+(define (a-plus-abs-b a b)
+  ((if (> b 0) + -) a b))
+(a-plus-abs-b 1 2)
+#+end_src
+After the predicate of the if is evaluated, if b is greater than zero, the sum of a and b is taken as normal. The else clause performs subtraction of a by b, that is, if b is less than or equal to zero, we have a - (-b) = a + b. Note this is logically equivalent to a + |-b|.
+*** 1.5
+Ben Bitdiddle has invented a test to determine whether the interpreter he is faced with is using applicative-order evaluation or normal-order evaluation. He defines the following procedures:
+#+begin_src scheme
+(define (p) (p))
+(define (test x y)
+  (if (= x 0)
+      0
+      y))
+(test 0 (p))
+#+end_src
+What behavior will Ben observe with an interpreter that uses applicative-order evaluation? WHat behavior will he observe with an interpreter that uses normal-order evaluation? Explain your answer. (Assume that the evaluation rule for the special form if is the same whether the interpreter is using normal or applicative order: the predicate expression is evaluated first and the result determines whether to evaluate the consequent or the alternative expression.)
+When test is ran, x is identically 0 and one might expect the if to merely return 0. However, the issue is that because (p) is to follow substitution per the applicative-order evaluation, p is called and (p) need to be evaluated once again. This leads to a stack overflow.
+If were to instead be using a normal-order evaluation, we expand the test definition in its call and continue to expand until we have primitive combinations. In this way, the if predicate CAN be hit, and 0 simply returned.
+** Square Roots By Newton's Method
+Consider that by square-root function of mathematics, we mean a function f(z) >= 0 such that f(z)^2 = z. This is a perfectly legitimate mathematical function, we can use it to test whether a number is a squareroot of another, or derive properties of squareroots, it does not however describe a *procedure*.
+This embodies the distinction between declarative and imperative knowledge.
+If we want to procedurally compute the squareroot of a number, we apply an approximation routine due to Newton.
+#+begin_src scheme
+(define (sqrt-iter guess x)
+  (if (good-enough? guess x)
+      guess
+      (sqrt-iter (improve guess x) x)))
+#+end_src
+We improve the guess by averaging the sum of the current guess and x / current guess.
+#+begin_src scheme
+(define (improve guess x)
+  (average guess (/ x guess)))
+#+end_src
+We implement the average of two numbers:
+#+begin_src scheme
+(define (average x y)
+  (/ (+ x y) 2))
+#+end_src
+One way to implement good-enough? would be to look at the absolute value of the difference of the square of the current guess and x and try to get it sufficiently small. I differ from SICP here and include a tolerance variable to supplied by the user.
+#+begin_src scheme
+(define (good-enough? guess x tolerance)
+  (< (abs (- (square guess) x)) tolerance))
+#+end_src
+Abs and square have been implemented previously, and with them we have the full implementation:
+#+begin_src scheme
+(define (sqrt-iter guess x tolerance)
+  (if (good-enough? guess x tolerance)
+      guess
+      (sqrt-iter (improve guess x) x tolerance)))
+(define (improve guess x)
+  (average guess (/ x guess)))
+(define (average x y)
+  (/ (+ x y) 2))
+(define (good-enough? guess x tolerance)
+  (< (abs (- (square guess) x)) tolerance))
+(define (abs x)
+  (if (< x 0)
+      (- x)
+      x))
+(define (square x) (* x x))
+(sqrt-iter 1.8 2 0.0001)
+#+end_src
+
+#+RESULTS:
+: 1.4142136841942816
+
+** EXERCISES 1.6 - 1.8
+*** 1.6
+Because Alyssa's new-if is going to require the evaluation of sqrt-iter regardless of the truthfulness of the predicate clause, this will produce a stack overflow as sqrt-iter will call itself an infinite amount of times. The if of LISP does not use pure applicative-order evaluation.
+*** 1.7
+- The good-enough? test used in computing square roots will not be very effective for finding the square roots of very small numbers. Also, in real computers, arithmetic operations are almost always performed with limited precision. This makes our test inadequate for very large numbers. Explain these statements, with examples showing how the test fails for small and large numbers. An alternative strategy for implementing good-enough? is to watch how guess changes from one iteration to the next and to stop when the change is a very small fraction of the guess. Design a square-root procedure that uses this kind of end test. Does this work better for small and large numbers?
+This is a space comlexity issue. Because when we are testing to see if our guess is indeed a squareroot, we invoke squaring of the number; this value, grows like like g^2. Because small numbers are floats, operationally, they present the same space complexity problem to the CPU. Testing the difference in the next guess iteration is more effective because here the testing clause evolves purely linearly. However, in my case, a precise enough choice of tolerance is destined to break the evaluation, it will occur when the value given is smaller than the smallest precision float my CPU can represent.
+#+begin_src scheme
+(define (sqrt-iter guess x tolerance)
+  (if (good-enough? guess (improve guess x) tolerance)
+      guess
+      (sqrt-iter (improve guess x) x tolerance)))
+(define (improve guess x)
+  (average guess (/ x guess)))
+(define (average x y)
+  (/ (+ x y) 2))
+(define (good-enough? guess next-guess tolerance)
+  (< (abs (- guess next-guess)) tolerance))
+(define (abs x)
+  (if (< x 0)
+      (- x)
+      x))
+(define (square x) (* x x))
+(sqrt-iter 1 1000000.0 0.0001)
+#+end_src
+#+RESULTS:
+: 1000.0000000000118
+
+*** 1.8
+Newton's method for cube roots is based on the fact that if y is an approximation to the cube root of x, then a better approximation is given by the value: (x/y^2 + 2y) / 3. (The derivation of this is anlogous to the square case).
+#+begin_src scheme
+(define (cube-iter guess x tolerance)
+  (if (good-enough? guess (improve guess x) tolerance)
+      guess
+      (cube-iter (improve guess x) x tolerance)))
+(define (improve guess x)
+  (average (* 2 guess) (/ x (square guess))))
+(define (average x y)
+  (/ (+ x y) 3))
+(define (good-enough? guess next-guess tolerance)
+  (< (abs (- guess next-guess)) tolerance))
+(define (abs x)
+  (if (< x 0)
+      (- x)
+      x))
+(define (square x) (* x x))
+(cube-iter 1 8.0 0.0001)
+#+end_src
+
+#+RESULTS:
+: 2.000004911675504
+
+** Internal Definitions and Block Structure
+We should probably be defining auxiliary procedures INSIDE of a sqrt function. The reason is 2 fold. For one, users do not care about the auxiliary procedures like good-enough? and improve. Secondly, and more importantly, many functions may have their own procedures named good-enough? and improve, and we would like to keep these functions local ONLY to the sqrt function so there cannot be scoping interference.
+#+begin_src scheme
+(define (square x) (* x x))
+(define (average x y) (/ (+ x y) 2))
+(define (abs x) (if (< x 0) (- x) x))
+(define (sqrt x)
+  (define (good-enough? guess x)
+    (< (abs (- (square guess) x)) 0.001))
+  (define (improve guess x)
+    (average guess (/ x guess)))
+  (define (sqrt-iter guess x)
+    (if (good-enough? guess x)
+        guess
+        (sqrt-iter (improve guess x) x)))
+  (sqrt-iter 1.0 x))
+#+end_src
+
+This is called *block structure*. Another thing which we can do is remove the explicit formal parameters given in the auxiliary procedure definition which are already given by sqrt; x. This is what *lexical scoping* is.
+#+begin_src scheme
+(define (square x) (* x x))
+(define (average x y) (/ (+ x y) 2))
+(define (abs x) (if (< x 0) (- x) x))
+(define (sqrt x)
+  (define (good-enough? guess)
+    (< (abs (- (square guess) x)) 0.001))
+  (define (improve guess)
+    (average guess (/ x guess)))
+  (define (sqrt-iter guess)
+    (if (good-enough? guess)
+        guess
+        (sqrt-iter (improve guess))))
+  (sqrt-iter 1.0))
+(sqrt 16)
+#+end_src
+
+#+RESULTS:
+: 4.000000636692939
+
+Block structure originated with the programming language ALGOL 60.
+
+** Linear Recursion and Iteration
+*** Factorial Function Implementations
+We will speak of *procedures* vs *processes*
+_Recursive Process_
+#+begin_src scheme
+(define (factorial n)
+  (if (= n 1)
+      1
+      (* n (factorial (- n 1)))))
+(factorial 3)
+#+end_src
+- Notice how this procedure, via the substitution model, reveals a shape of expansion and contraction. A stack is expanded until a terminating condition is met, i.e. a chain of deferred operations. Contraction is when the operations are actually performed. Carrying out this process *requires that the interpreter keep track of operations to be performed later on.* The length of the chain grows linearly with n.
+- *DEFINTION*: A process is called *recursive* if it is expanded and contracted via a chain of deferred operations.
+_Iterative Process_
+#+begin_src scheme
+(define (factorial n)
+  (fact-iter 1 1 n))
+(define (fact-iter product counter max-count)
+  (if (> counter max-count)
+      product
+      (fact-iter (* counter product)
+                 (+ counter 1)
+                 max-count)))
+#+end_src
+- Notice how this procedure does not grow and shrink. At each step, we need to simply keep track of the current product, counter and max-count variables.
+- *DEFINITION*: A process is *iterative* is one whose state can be summarized by a fixed number of *state variables*, together with a fixed rule that describes how the state variables should be updated as the process moves from state to state and an (optional) end test that specifies conditions under which the process should terminate. This particular process is also growing linearly with n.
+_SOME NOTES_
+- Because the iterative process has state variables which describe the state of the process at any given point, halting execution is not an issue. We could simply resume the computation at any point by supplying the interpreter with the values of the state variables.
+- This is not the case in the recursive process, in this case there is additional "hidden" information maintained by the interpreter and not the variables of the program which are negotiating the chain of deferred operations. The longer the chain, the more information that must be maintained.
+- When refer to a *procedure* as recursive we are simply noting the SYNTACTIC fact that the procedure definition refers to the procedure itself.
+- When refer to a *process* as recursive we are talking about how the process evolves, not the syntax of the procedure's code.
+- *fact-iter is a recursive procedure but it generates an iterative process*. The state is completely captured by its three state variables, the interpreter only needs to keep track of these variables to execute the process.
+- With so called *tail recursion*, iteration can be expressed using the ordinary procedure call mechanism. An iterative process can then be in constant space, even if the iterative process is described by a recursive procedure.
+_ITERATIVE/RECURSIVE WITH THE STACK_
+- An iterative process can be realized in hardware as a machine that has a fixed set of registers and no auxiliary memory.
+- In contrast, realizing a recursive process requires a machine that uses an auxiliary data structure we call a *stack*.
+
+** EXERCISES 1.9 - 1.10
+*** 1.9
+Each of the following two procedures defines a method for adding two positive integers in terms of the procedures inc, which increments its argument by 1 and dec, which decrements it argument by 1. Are these processes iterative or recursive?
+#+begin_src scheme
+(define (+ a b)
+  (if (= a 0)
+      b
+      (inc (+ (dec a) b))))
+(define (+ a b)
+  (if (= a 0)
+      b
+      (+ (dec a) (inc b))))
+#+end_src
+_PROCEDURE 1_
+(+ 2 3)
+(inc (+ 1 3))
+(inc (inc (+ 0 3)))
+(inc (inc (3)))
+(inc 4)
+5
+The process generated by this procedure is recursive, it is accomplished via a chain of deferred operations. Note that the state of this process is not fully determined by a simple specification of a and b, because at each step we wait for the interpreter to supply us with the evaluation of inc.
+_PROCEDURE 2_
+(+ 2 3)
+(+ 1 4)
+(+ 0 5)
+5
+The process generated by this procedure is iterative, note that at any given point execution can be halted and we can supply the state variables a b to continue.
+*** 1.10
+The following procedure computes a mathematical function called Ackermann's function.
+**** Scheme
+#+begin_src scheme
+(define (A x y)
+  (cond ((= y 0) 0)
+        ((= x 0) (* 2 y))
+        ((= y 1) 2)
+        (else (A (- x 1)
+                 (A x (- y 1))))))
+#+end_src
+(A 1 10)
+(A 0 (A 1 9))
+(A 0 (A 0 (A 1 8)))
+...
+(A 0 (A 0 ... (A 1 1)))
+(A 0 (A 0 ... 2))
+When the x=0 condition is then evaluated, we double 2. Since are doubling 2 10 times, this is equivalent to 2^10 = 1024. A(1, n) = 2^n.
+
+(A 2 4)
+(A 1 (A 2 3))
+(A 1 (A 1 (A 2 2)))
+(A 1 (A 1 (A 1 (A 2 1))))
+(A 1 (A 1 (A 1 2)))
+(A 1 (A 1 (A 0 (A 1 1))))
+(A 1 (A 1 (A 0 2)))
+(A 1 (A 1 4))
+(A 1 2^4)
+(A 1 16)
+65536
+Note that A(2,4), in general, A(2, n) = 2^(2^(2^...))?
+
+(A 3 3)
+(A 2 (A 3 2))
+(A 2 (A 2 (A 3 1)))
+(A 2 (A 2 2))
+(A 2 (A 1 2^2))
+(A 2 4)
+(A 1 2^4)
+65536
+
+A(0, n) = 2n.
+A(1, n) = 2^n.
+A(2, n) = A(1, A(2,n-1)) = A(1, A(1, A(2, n-2))) = 2^2^2^2... (n-times)
+A(3, n) = A(2, A(3,n-1)) = 2^2^2 ... n-times ^ 2^2^2 ... n-times
+
+For n > 1, m > 1
+A(m, n) = (2^2^2^ ... n-times) ^ (2^2^2^ ... n-times) ^ ... (m-1)-times.
+
+Crazy shit. WTF.
+**** Python
+#+begin_src python :results output
+def ackermann(x,y):
+    if y == 0:
+        return 0
+    if x == 0:
+        return 2 * y
+    if y == 1:
+        return 2
+    else:
+        return ackermann(x-1, ackermann(x,y-1))
+#+end_src
+
+** Tree Recursion
+A common computational pattern is tree recursion. As an example, consider the sequence of Fibonacci numbers.
+The nth Fibonacci number can be obtained recursively, in scheme:
+#+begin_src scheme
+(define (fib n)
+  (cond ((= n 0) 0)
+        ((= n 1) 1)
+        (else (+ (fib (- n 1))
+                 (fib (- n 2))))))
+(fib 8)
+#+end_src
+
+#+RESULTS:
+: 5
+
+** EXERCISES 1.11 - 1.13
+*** 1.11
+A function f is defined by the rule that f(n) = n if n<3 and f(n) = f(n - 1) + 2f(n - 2) + 3f(n - 3) if n> 3. Write a procedure that computes f by means of a recursive process. Write a procedure that computes f by means of an iterative process.
+**** Recursive
+#+begin_src scheme
+(define (fibbi n)
+  (cond ((< n 3) n)
+        (else (+ (fibbi (- n 1))
+                 (* 2
+                    (fibbi (- n 2)))
+                 (* 3
+                    (fibbi (- n 3)))))))
+(fibbi 5)
+#+end_src
+
+#+RESULTS:
+: 25
+
+**** Iterative
+#+begin_src scheme
+(define (fibbi n)
+  (define (fibbi-iter a b c count)
+    (cond ((< n 3) n)
+          ((<= count 0) a)
+          (else (fibbi-iter (+ a (* 2 b) (* 3 c)) a b (- count 1)))))
+  (fibbi-iter 2 1 0 (- n 2)))
+(fibbi 5)
+#+end_src
+
+#+RESULTS:
+: 25
+
+*** 1.12
